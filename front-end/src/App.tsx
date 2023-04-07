@@ -1,36 +1,37 @@
-import {Routes, Route, RouterProvider, createBrowserRouter} from 'react-router-dom'
-import Root from './components/Root'
-import Admin from './pages/Admin'
-import Auth from './pages/Auth'
-import ErrorPage from './pages/ErrorPage'
-import Product from './pages/Product'
-import { checkAuthLoader } from './util/auth'
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Root />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        path: 'products',
-        element: <Product />
-      },
-      {
-        path: 'login',
-        element: <Auth />
-      },
-      {
-        path: 'admin',
-        element: <Admin />,
-        loader: checkAuthLoader
-      }
-    ]
-  }
-])
-function App() {
-  return (
-    <RouterProvider router={router}/>
-  )
-}
+import { Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import Root from './components/Root';
+import AdminPage from './pages/AdminPage';
+import AuthPage from './pages/AuthPage';
+import ErrorPage from './pages/ErrorPage';
+import Product from './pages/ProductPage';
+import ProductList from './components/admin/product/Product';
+import ProductDetails from './components/admin/product/ProductDetails';
+import ProductAdd from './components/admin/product/ProductAdd';
+import ProductUpdate from './components/admin/product/ProductUpdate';
 
-export default App
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route errorElement={<ErrorPage />}>
+      <Route path='/' element={<Root />} >
+        <Route path='products' element={<Product />} />
+        <Route path='login' element={<AuthPage path={"login"} />} />
+        <Route path='register' element={<AuthPage path={"register"} />} />
+      </Route>
+      <Route path='admin' element={<ProtectedRoute><AdminPage /></ProtectedRoute>}>
+        <Route path='products' element={<ProductList />} />
+        <Route path='products/:id' element={<ProductDetails />} />
+        <Route path='products/add' element={<ProductAdd />}/>
+        <Route path='products/update/:id' element={<ProductUpdate />}/>
+      </Route>
+    </Route>  
+  )
+);
+
+const App: React.FC = () => {
+  return (
+    <RouterProvider router={router} />
+  );
+};
+
+export default App;

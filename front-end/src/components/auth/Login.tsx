@@ -2,7 +2,7 @@ import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { iUser } from '../../interface/auth';
+import { iLogin } from '../../interface/auth';
 import { login } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 const LoginSchema = Yup.object().shape({
@@ -14,8 +14,8 @@ const LoginSchema = Yup.object().shape({
 });
 
 const LoginForm: React.FC = () => {
-    let navigate = useNavigate();
-  const handleLogin = (values: iUser, { setSubmitting, setErrors }: any) => {
+  let navigate = useNavigate();
+  const handleLogin = (values: iLogin, { setSubmitting, setErrors }: any) => {
     login(values)
       .then(response => {
         localStorage.setItem('user', JSON.stringify(response));
