@@ -1,116 +1,88 @@
-import React from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-
-interface ProductFormValues {
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Button, Upload, message, Select } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+import { RcFile } from 'antd/lib/upload';
+import { getAllCategory } from '../../../api/category';
+import { createProduct } from '../../../api/product';
+import { useNavigate } from 'react-router-dom';
+interface FormData {
   name: string;
   price: number;
-  categories: string[];
   description: string;
-  images: File | null;
+  categories: string[];
+  images: RcFile[];
 }
 
-const validationSchema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  price: Yup.number().required('Price is required'),
-  categories: Yup.array().required('At least one category is required'),
-  description: Yup.string().required('Description is required'),
-  images: Yup.mixed().required('Images are required'),
-});
+interface Category {
+  _id: string;
+  name: string;
+  description: string;
+  products: string[];
+  createdAt: string;
+  updatedAt: string;
+  deleted: boolean;
+}
 
-const categoriesOptions = [
-  { label: 'Category 1', value: 'category1' },
-  { label: 'Category 2', value: 'category2' },
-  { label: 'Category 3', value: 'category3' },
-  { label: 'Category 4', value: 'category4' },
-];
+const { Option } = Select;
 
-const ProductForm: React.FC = () => {
-  const initialValues: ProductFormValues = {
-    name: '',
-    price: 0,
-    categories: [],
-    description: '',
-    images: null,
+const AddProductForm = () => {
+  let navigate = useNavigate();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategoties] = useState<Category[]>([]);
+
+  useEffect(() => {
+    getAllCategory().then(res =>  setCategoties(res.data))
+  }, [])
+  
+  const onFinish = (data: FormData) => {
+    setLoading(true);
+    createProduct({...data, images: data.images.map((item: any) => item.originFileObj)}).then(res => navigate('/admin/products'))
+    setLoading(false);
   };
 
-  const handleSubmit = (values: ProductFormValues, { resetForm }: any) => {
-    // handle form submission here
-    console.log(values);
-    resetForm();
+  const handleUploadChange = (info: any) => {
+    console.log(info);
+  };
+
+  const handleUploadCustomRequest = ({ file, onSuccess, onError }: any) => {
+    // Do something with the file
+    console.log(file);
+
+    // Call onSuccess or onError depending on the outcome of the file upload
+    onSuccess();
   };
 
   return (
-    <Formik
-      initialValues={initialValues}
-      validationSchema={validationSchema}
-      onSubmit={handleSubmit}
-    >
-      {({ errors, touched, values, setFieldValue }) => (
-        <Form className="product-form">
-          <div className="form-group">
-            <label htmlFor="name">Name</label>
-            <Field type="text" name="name" id="name" className="form-control" />
-            <ErrorMessage name="name" className="error-message" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="price">Price</label>
-            <Field type="number" name="price" id="price" className="form-control" />
-            <ErrorMessage name="price" className="error-message" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="categories">Categories</label>
-            <Field
-              as="select"
-              name="categories"
-              id="categories"
-              multiple
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-                const options = event.target.options;
-                const values = [];
-                for (let i = 0; i < options.length; i++) {
-                  if (options[i].selected) {
-                    values.push(options[i].value);
-                  }
-                }
-                setFieldValue('categories', values);
-              }}
-              value={values.categories}
-              className="form-control"
-            >
-              {categoriesOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Field>
-            <ErrorMessage name="categories" className="error-message" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <Field type="text" name="description" id="description" className="form-control" />
-            <ErrorMessage name="description" className="error-message" />
-          </div>
-          <div className="form-group">
-            <label htmlFor="images">Images</label>
-            <Field name="images">
-              {({ field, form }:any) => (
-                <input
-                  type="file"
-                  onChange={(event) => {
-                    const file = event.currentTarget.files![0];
-                    form.setFieldValue(field.name, file);
-                  }}
-                />
-              )}
-            </Field>
-            <ErrorMessage name="images" className="error-message" />
-          </div>
-          <button type="submit" className="btn btn-primary">Submit</button>
-        </Form>
-      )}
-    </Formik>
+    <Form layout="vertical" form={form} onFinish={onFinish}>
+      <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter the name of the product' }]}>
+        <Input />
+      </Form.Item>
+      <Form.Item name="price" label="Price" rules={[{ required: true, message: 'Please enter the price of the product' }]}>
+        <Input type="number" />
+      </Form.Item>
+      <Form.Item name="description" label="Description" rules={[{ required: true, message: 'Please enter the description of the product' }]}>
+        <Input.TextArea />
+      </Form.Item>
+      <Form.Item name="categories" label="Categories" rules={[{ required: true, message: 'Please select at least one category' }]}>
+        <Select mode="multiple">
+          {categories.map((item, index) => (
+            <Option value={item._id} key={index}>{item.name}</Option>
+          ))}
+        </Select>
+      </Form.Item>
+      <Form.Item name="images" label="Images" valuePropName="fileList" getValueFromEvent={(e) => e.fileList}>
+        <Upload customRequest={handleUploadCustomRequest} onChange={handleUploadChange} multiple>
+          <Button icon={<UploadOutlined />}>Click to upload</Button>
+        </Upload>
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit" loading={loading}>
+          Add Product
+        </Button>
+      </Form.Item>
+    </Form>
   );
 };
 
-export default ProductForm;
+export default AddProductForm;

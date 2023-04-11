@@ -138,7 +138,7 @@ export const update = async (req, res) => {
 export const remove = async (req, res) => {
     try {
         const id = req.params.id;
-        const { isHardDelete } = req.body;
+        const { isHardDelete } = req.query;
         const product = await Product.findById(id);
         if (!product) {
             return res.status(404).json({
@@ -147,15 +147,14 @@ export const remove = async (req, res) => {
         }
 
         if(isHardDelete === "true") {
-            const categories = Category.find({
-                products: id
-            });
+            const categories = await Category.find({products: id});
+            console.log(categories)
             for(let i = 0; i < categories.length; i++) {
                 const category = categories[i];
-                category.products.pull(id);
+                await category.products.pull(id);
                 await category.save();
             }
-            await product.forceDelete();
+            await product.remove();
         } else {
             await product.delete();
         }

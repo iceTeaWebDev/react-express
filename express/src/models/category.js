@@ -40,17 +40,6 @@ categorySchema.pre("findOneAndDelete", async function (next) {
     }
 })
 
-categorySchema.pre("save", async function (next) {
-    const category = this;
-    try {
-        // Update all products that belong to the category with the new category ID
-        const result = await Product.updateMany({ _id: { $in: category.products } }, { $push: { categories: category._id } });
-        next();
-    } catch (err) {
-        next(err);
-    }
-})
-
 plugins.forEach((plugin) => {
     categorySchema.plugin(plugin);
 });

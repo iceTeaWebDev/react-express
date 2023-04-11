@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { iProduct } from '../../../interface/product'
 import { useParams } from 'react-router-dom'
 import { getOneProduct } from '../../../api/product';
+import SliderComponent from './ImageSlider';
 export interface IParams extends Record<string, string | undefined> {
     id?: string;
 }
@@ -30,11 +31,7 @@ const ProductDetails = () => {
             (<div className="container mt-5">
                 <div className="row">
                     <div className="col-md-6">
-                        <img
-                            src={product.images[0].url}
-                            alt={product.images[0].alt}
-                            className="img-fluid"
-                        />
+                        <SliderComponent images={product.images}/>
                     </div>
                     <div className="col-md-6">
                         <h2>{product.name}</h2>

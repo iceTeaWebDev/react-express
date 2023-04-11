@@ -11,9 +11,7 @@ const SliderComponent = ({images}: iProps) => {
     infinite: true,
     speed: 500,
     slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 1000
+    slidesToScroll: 1
   };
 
   return (
